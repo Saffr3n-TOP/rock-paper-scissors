@@ -1,130 +1,142 @@
-function getChoiceNum(choiceStr) {
-  switch (choiceStr.toUpperCase()) {
-    case "R":
-    case "ROCK":
-      return 0;
-    case "P":
-    case "PAPER":
-      return 1;
-    case "S":
-    case "SCISSORS":
-      return 2;
-    default:
-      return NaN;
-  }
-}
+const choiceButtons = document.querySelectorAll('.opts button');
 
-function getChoiceStr(choiceNum) {
-  switch (choiceNum) {
-    case 0:
-      return "Rock";
-    case 1:
-      return "Paper";
-    case 2:
-      return "Scissors";
-    default:
-      return "";
-  }
-}
+const playerLog = {
+  score: document.querySelector('.player .score'),
+  body: document.querySelector('.player .body')
+};
+const computerLog = {
+  score: document.querySelector('.computer .score'),
+  body: document.querySelector('.computer .body')
+};
 
-function getPlayerChoice() {
-  const p = prompt("Choose Rock, Paper or Scissors:");
-  const choiceNum = getChoiceNum(p);
-  const choiceStr = getChoiceStr(choiceNum);
+choiceButtons.forEach((btn) => {
+  btn.addEventListener('click', (e) => {
+    const playerChoice = getPlayerChoice(e.target);
+    const computerChoice = getComputerChoice();
+    const roundResult = getRoundResult(playerChoice.num, computerChoice.num);
 
-  if (!choiceStr) return getPlayerChoice();
+    updateScore(roundResult);
+    createLogRow(playerChoice.str, computerChoice.str, roundResult);
+  });
+});
+
+function getPlayerChoice(clickedBtn) {
+  const choiceNum = +clickedBtn.id;
 
   return {
     num: choiceNum,
-    str: choiceStr,
+    str: getChoiceStr(choiceNum)
   };
 }
 
 function getComputerChoice() {
   const minChoiceNum = 0;
   const maxChoiceNum = 2;
+
   const choiceNum = Math.floor(
     Math.random() * (1 + maxChoiceNum - minChoiceNum) + minChoiceNum
   );
-  const choiceStr = getChoiceStr(choiceNum);
 
   return {
     num: choiceNum,
-    str: choiceStr,
+    str: getChoiceStr(choiceNum)
   };
 }
 
-function getRoundResultNum(playerChoiceNum, computerChoiceNum) {
-  let choiceNumsDifference = playerChoiceNum - computerChoiceNum;
-
-  if (choiceNumsDifference < -1) choiceNumsDifference = 1;
-  if (choiceNumsDifference > 1) choiceNumsDifference = -1;
-
-  return choiceNumsDifference;
-}
-
-function getRoundResultStr(playerChoiceStr, computerChoiceStr, roundResultNum) {
-  let resultStr;
-
-  switch (roundResultNum) {
+function getChoiceStr(choiceNum) {
+  switch (choiceNum) {
     case 0:
-      resultStr = "Tie!";
-      break;
+      return 'Rock';
     case 1:
-      resultStr = "You win!";
-      break;
+      return 'Paper';
+    case 2:
+      return 'Scissors';
     default:
-      resultStr = "You lose...";
+      return '';
+  }
+}
+
+function getRoundResult(playerChoiceNum, computerChoiceNum) {
+  let roundResult = playerChoiceNum - computerChoiceNum;
+
+  if (roundResult < -1) roundResult = 1;
+  if (roundResult > 1) roundResult = -1;
+
+  return roundResult;
+}
+
+function updateScore(roundResult) {
+  const maxScore = 5;
+
+  let playerScore = +playerLog.score.textContent;
+  let computerScore = +computerLog.score.textContent;
+
+  if (roundResult === 1) {
+    playerScore++;
+    playerLog.score.textContent = playerScore;
+  }
+  if (roundResult === -1) {
+    computerScore++;
+    computerLog.score.textContent = computerScore;
   }
 
-  return `You chose ${playerChoiceStr}, computer chose ${computerChoiceStr}. ${resultStr}`;
-}
-
-function playRound() {
-  const playerChoice = getPlayerChoice();
-  const computerChoice = getComputerChoice();
-  const roundResultNum = getRoundResultNum(
-    playerChoice.num,
-    computerChoice.num
-  );
-  const roundResultStr = getRoundResultStr(
-    playerChoice.str,
-    computerChoice.str,
-    roundResultNum
-  );
-
-  return {
-    num: roundResultNum,
-    str: roundResultStr,
-  };
-}
-
-const roundsAmount = 5;
-
-function getGameResult(playerWins, computerWins) {
-  let result;
-
-  if (playerWins > computerWins) result = "You won the game";
-  else if (playerWins < computerWins) result = "You lost the game";
-  else result = "Tie game";
-
-  return `${result} of ${roundsAmount} rounds.\nPlayer ${playerWins}:${computerWins} Computer`;
-}
-
-function playGame() {
-  let playerWins = 0;
-  let computerWins = 0;
-
-  for (let i = 0; i < roundsAmount; i++) {
-    const roundResult = playRound();
-
-    if (roundResult.num > 0) playerWins++;
-    if (roundResult.num < 0) computerWins++;
-
-    console.log(roundResult.str);
+  if (playerScore > computerScore) {
+    playerLog.score.style.color = 'green';
+    computerLog.score.style.color = 'red';
+  } else if (playerScore < computerScore) {
+    playerLog.score.style.color = 'red';
+    computerLog.score.style.color = 'green';
+  } else {
+    playerLog.score.style.color = 'darkorange';
+    computerLog.score.style.color = 'darkorange';
   }
 
-  console.log(getGameResult(playerWins, computerWins));
+  if (playerScore === maxScore || computerScore === maxScore) {
+    finishGame(playerScore, computerScore);
+  }
 }
 
-playGame();
+function finishGame(playerScore, computerScore) {
+  const resultMsg = document.querySelector('.result .message');
+  const restartBtn = document.querySelector('.result button');
+
+  choiceButtons.forEach((btn) => {
+    btn.disabled = true;
+  });
+
+  if (playerScore > computerScore) {
+    resultMsg.textContent = 'You win!';
+  } else {
+    resultMsg.textContent = 'You lose...';
+  }
+
+  restartBtn.addEventListener('click', () => {
+    window.location.reload();
+  });
+
+  restartBtn.disabled = false;
+  restartBtn.style.display = 'inline';
+}
+
+function createLogRow(playerChoiceStr, computerChoiceStr, roundResult) {
+  const playerLogEntry = document.createElement('div');
+  playerLogEntry.textContent = playerChoiceStr;
+  playerLogEntry.className = 'item';
+  playerLog.body.appendChild(playerLogEntry);
+
+  const computerLogEntry = document.createElement('div');
+  computerLogEntry.textContent = computerChoiceStr;
+  computerLogEntry.className = 'item';
+  computerLog.body.appendChild(computerLogEntry);
+
+  if (roundResult === 1) {
+    playerLogEntry.style.color = 'green';
+    computerLogEntry.style.color = 'red';
+  } else if (roundResult === -1) {
+    playerLogEntry.style.color = 'red';
+    computerLogEntry.style.color = 'green';
+  } else {
+    playerLogEntry.style.color = 'darkorange';
+    computerLogEntry.style.color = 'darkorange';
+  }
+}

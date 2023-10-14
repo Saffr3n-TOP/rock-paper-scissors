@@ -1,0 +1,26 @@
+h1,
+p,
+.opts,
+.item,
+.result,
+.message {
+  text-align: center;
+}
+
+.log {
+  display: flex;
+  justify-content: center;
+}
+
+.player {
+  border-right: 1px solid black;
+}
+
+.head {
+  font-weight: bold;
+  border-bottom: 1px solid black;
+}
+
+.message {
+  font-size: 1.2rem;
+}
